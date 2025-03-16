@@ -6,6 +6,7 @@
    [java-time.api :as time]
    [behave-tree.weather :as weather]
    [behave-tree.config :as cfg]
+   [behave-tree.charger :as charger]
    [clojure.pprint :as pp]))
 
 (defn in-interval?
@@ -45,6 +46,16 @@
 (defn get-major-weather-events [location]
   (let [weather-data (weather/get-weather-forecast location)]
     (weather/parse-weather-data weather-data)))
+
+(defn get-charger-ip []
+  (get-in (cfg/get-config) [:charger :ip]))
+
+(defn fetch-charger-status []
+  (try
+    (charger/get-charger-status (get-charger-ip))
+    (catch Exception e
+      (println "Error fetching charger status:" (.getMessage e))
+      {:status "unknown"})))
 
 ;; aido behaviors for the battery
 (defmethod at/tick :battery-charged?
@@ -157,6 +168,7 @@
   (println "Current time:" (time/local-time))
   (println "Major weather events:" (get-major-weather-events (:location @cfg/config)))
   (println "Forecast SOC 45 at 6am:" (forecast-soc? 80 45 (time/local-time) (time/local-time 6 0) (/ 5 60)))
+  (println "Charger status:" (fetch-charger-status))
   (let [fns {}
         _ (print "Tree compiling...")
         tree (ac/compile battery-behaviour-tree fns)
