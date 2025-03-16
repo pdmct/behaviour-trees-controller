@@ -3,6 +3,8 @@
 *.css~
 *.edn~
 .cpcache/
+.clj-kondo/
+.lsp
 
 target/
 *.log

@@ -1,141 +1,128 @@
 (ns behave-tree.core
-  (:require [aido.compile :as ac]
-            [aido.options :as ao]
-            [aido.core :as ai]
-            [aido.tick :as at]))
-
-;; Behavior Tree Nodes
-(defn success [_] :success)
-(defn failure [_] :failure)
-
-;; Composite nodes
-(defn sequence-node [& children]
-  (fn [state]
-    (loop [nodes children]
-      (if (empty? nodes)
-        :success
-        (let [result ((first nodes) state)]
-          (if (= result :success)
-            (recur (rest nodes))
-            result))))))
-
-(defn selector-node [& children]
-  (fn [state]
-    (loop [nodes children]
-      (if (empty? nodes)
-        :failure
-        (let [result ((first nodes) state)]
-          (if (= result :failure)
-            (recur (rest nodes))
-            result))))))
-
-;; Decorator node
-(defn inverter [child]
-  (fn [state]
-    (let [result (child state)]
-      (case result
-        :success :failure
-        :failure :success
-        result))))
-
-;; Leaf node (actions)
-(defn action [f]
-  (fn [state]
-    (if (f state)
-      :success
-      :failure)))
-
-;; Email Response Behavior Tree Actions
-(defn understood-question? [state]
-  (:question-understood state))
-
-(defn generate-llm-response [state]
-  (println "Generating response using LLM...")
-  (if (:llm-response-clear state)
-    (assoc state :response-generated true)
-    state))
-
-(defn response-sufficient? [state]
-  (:response-generated state))
-
-(defn send-response [state]
-  (println "Sending generated response to customer.")
-  (assoc state :response-sent true))
-
-(defn escalate-to-human [_]
-  (println "Escalating to human intervention.")
-  true)
-
-;; Constructing the behavior tree for customer email responses
-(def email-response-tree
-  (selector-node
-   (sequence-node
-    (action understood-question?)
-    (action generate-llm-response)
-    (action response-sufficient?)
-    (action send-response))
-   (action escalate-to-human)))
+  (:require
+   [aido.compile :as ac]
+   [aido.core :as ai]
+   [aido.tick :as at]
+   [java-time.api :as time]))
 
 
-;; define aido behaviours using the functions above
-(defmethod at/tick :understood-question?
-  [db & _]
-  (let [input (:state db)
-        _ (println (str "return value " (understood-question? input)))
-        understood (understood-question? input)
-        _ (println (str "understood:" understood))
-        _ (println (str "db: " db))]
-    (if understood
-      (do
-        (println "Question understood")
-        (ai/tick-success db))
-      (do
-        (println "Can't understand question")
-        (ai/tick-failure db)))))
+(defn in-interval?
+  "Returns true if the given LocalTime is within the specified interval [start-hour, end-hour]."
+  [time start-hour end-hour]
+  (and (>= (.getHour time) start-hour)
+       (< (.getHour time) end-hour)))
 
-(defmethod at/tick :generate-llm-response!
-  [db & _]
-  (let [new-state (generate-llm-response (:state db))]
-    (ai/tick-success (assoc db
-                            :state new-state))))
+(defn in-free-charge-time? [time]
+  (in-interval? time 11 13))
 
-(defmethod at/tick :response-sufficient?
-  ([db & _]
-   (if (response-sufficient? (:state db))
-     (ai/tick-success db)
-     (ai/tick-failure db))))
+(defn in-cheap-charge-time? [time]
+  (in-interval? time 0 6))
 
-(defmethod at/tick :send-response!
-  [db & _]
-  (ai/tick-success (assoc db
-                          :state
-                          (send-response (:state db)))))
+(defn minutes-until-target [current-time target-time-of-day]
+  (let [target-time (time/local-time target-time-of-day)
+        current-local-time (time/local-time current-time) ; Extract LocalTime
+        ;; Check if current time is after the target time
+        target-time (if (.isAfter current-local-time target-time)
+                      (-> target-time
+                          (.plusHours 24)) ; Add 24 hours to target time
+                      target-time)
+        difference (.toMillis (java.time.Duration/between current-local-time target-time))]
+    (if (< difference 0)
+      (+ 1440 (/ difference 60000))
+      (/ difference 60000))))
 
-(defmethod at/tick :escalate-to-human!
-  [db & _]
-  (ai/tick-success (assoc db
-                          :escalated
-                           (escalate-to-human (:state db)))))
+(defn forecast-soc?
+  [current-soc target-soc  current-time target-time-of-day charge-rate-mins]
+  (let [time-left-mins (minutes-until-target current-time target-time-of-day)
+        ;; _ (println (str "time-left-mins: " (* time-left-mins 1.0)))
+        ;; _ (println (str "charge-rate-mins: " (* charge-rate-mins 1.0)))
+        ;; _ (println (str "current-soc: " (* current-soc 1.0)))
+        forecast-soc (+ current-soc (* time-left-mins charge-rate-mins))]
+    (>= forecast-soc target-soc)))
 
-(defn main[args]
+;; aido behaviors for the battery
+(defmethod at/tick :battery-charged?
+  [db]
+  (if (>= (:soc (:state db)) 100)
+    (ai/tick-success db)
+    (ai/tick-failure db)))
+
+(defmethod at/tick :battery-soc-80?
+  [db]
+  (if (>= (:soc (:state db)) 80)
+    (ai/tick-success db)
+    (ai/tick-failure db)))
+
+(defmethod at/tick :battery-soc-20?
+  [db]
+  (if (<= (:soc (:state db)) 20)
+    (ai/tick-success db)
+    (ai/tick-failure db)))
+
+(defmethod at/tick :free-charge-time?
+  [db]
+  (if (in-free-charge-time? (time/local-time))
+    (ai/tick-success db)
+    (ai/tick-failure db)))
+
+(defmethod at/tick :cheap-charge-time?
+  [db]
+  (if (in-cheap-charge-time? (time/local-time))
+    (ai/tick-success db)
+    (ai/tick-failure db)))
+
+(defmethod at/tick :car-charging?
+  [db]
+  (if (:car-charging? (:state db))
+    (ai/tick-success db)
+    (ai/tick-failure db)))
+
+(defmethod at/tick :forecast-soc-45-at-6am?
+  [db]
+  (if (forecast-soc? (:soc (:state db))
+                     45
+                     (time/local-time 6 0)
+                     (/ 5 60))
+    (ai/tick-success db)
+    (ai/tick-failure db)))
+
+(defmethod at/tick :charge-battery
+  [db]
+  (ai/tick-success (assoc db :state {:soc 100})))
+
+(defmethod at/tick :wait-1-minute
+  [db]
+  (do (Thread/sleep 60000)
+      (ai/tick-success db)))
+
+(def battery-behaviour-tree
+  [:loop {:count 3}
+   [:selector
+    [:battery-charged?]
+    [:sequence
+     [:free-charge-time?]
+     [:selector
+      [:car-charging?
+       :charge-battery]]]
+    [:sequence
+     [:cheap-charge-time?]
+     [:selector
+      [:car-charging?]
+      [:sequence
+       [:forecast-soc-45-at-6am?]
+       [:charge-battery]]]]]
+   [:wait-1-minute]])
+
+(defn main
   ;; Running the behavior tree
-  ;;(email-response-tree {:question-understood true :llm-response-clear true})  ;; Output: Generating response using LLM... Sending generated response to customer.
-  ;;(email-response-tree {:question-understood false})                         ;; Output: Escalating to human intervention.
+  []
   (let [fns {}
-        tree (ac/compile [:selector
-                          [:sequence
-                           [:understood-question?]
-                           [:generate-llm-response!]
-                           [:response-sufficient?]
-                           [:send-response!]]
-                          [:escalate-to-human!]]                         
-                         fns)
-        db {:state {:question-understood true
-                    :llm-response-clear true}}]
+        tree (ac/compile battery-behaviour-tree fns)
+        db {:state {:soc 80
+                    :car-charging? false}}]
     (let [{:keys [db status]} (ai/run-tick db tree)]
       (print (str "db:" db))
       (if (and (= ai/SUCCESS status)
                (get-in db [:state :response-sent]))
         (print (str "Email generated and sent!"))
-        (print "Help!")))))  ;; Output: Escalating to human intervention.
- 
+        (print "Help!")))))
