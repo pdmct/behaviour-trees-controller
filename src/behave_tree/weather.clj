@@ -1,6 +1,7 @@
 (ns behave-tree.weather
   (:require [clj-http.client :as client]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [clojure.pprint :as pp]))
 
 (defn get-weather-forecast [location]
   (let [url (str "https://api.open-meteo.com/v1/forecast?latitude=" (:latitude location) "&longitude=" (:longitude location) "&hourly=temperature_2m")
@@ -8,5 +9,6 @@
     (:body response)))
 
 (defn parse-weather-data [weather-data]
-  (let [alerts (-> weather-data :alerts)]
+  (let [_ (pp/pprint weather-data)
+        alerts (-> weather-data :alerts)]
     (map #(select-keys % [:event :start :end :description]) alerts)))

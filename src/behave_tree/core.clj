@@ -5,6 +5,7 @@
    [aido.tick :as at]
    [java-time.api :as time]
    [behave-tree.weather :as weather]
+   [behave-tree.config :as cfg]
    [clojure.pprint :as pp]))
 
 (defn in-interval?
@@ -101,7 +102,7 @@
       (ai/tick-failure db))))
 
 (defmethod at/tick :major-weather-event?
-  [db]
+  [db & children]
   (let [location "your_location"
         major-events (get-major-weather-events location)]
     (if (seq major-events)
@@ -138,10 +139,10 @@
       [:sequence
        [:cheap-charge-time?]
        [:selector
-        [:car-charging?
+        [:car-charging?]
         [:sequence
          [:forecast-soc-45-at-6am?]
-         [:charge-battery]]]]]
+         [:charge-battery]]]]
       [:sequence
        [:major-weather-event?]
        [:nothing-to-do]]]
@@ -152,6 +153,10 @@
   ;; Running the behavior tree
   []
   (print "Starting...")
+  (println "Loaded config:" @cfg/config)
+  (println "Current time:" (time/local-time))
+  (println "Major weather events:" (get-major-weather-events (:location @cfg/config)))
+  (println "Forecast SOC 45 at 6am:" (forecast-soc? 80 45 (time/local-time) (time/local-time 6 0) (/ 5 60)))
   (let [fns {}
         _ (print "Tree compiling...")
         tree (ac/compile battery-behaviour-tree fns)

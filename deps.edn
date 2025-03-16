@@ -1,9 +1,14 @@
-{:paths ["src" "test"]
+{:paths ["src" "test" "resources"]
  :deps
  {clojure.java-time/clojure.java-time {:mvn/version "1.4.3"}
-  sandbags/aido {:mvn/version "0.4.0"}}
+  sandbags/aido {:mvn/version "0.4.0"}
+  cheshire/cheshire {:mvn/version "5.10.0"}
+  clj-http/clj-http {:mvn/version "3.12.0"}
+  org.clojure/clojure {:mvn/version "1.10.1"}
+  aero/aero {:mvn/version "1.1.6"}}
  :aliases
  {:dev {:extra-paths ["src"]
+        :extra-deps {aero/aero {:mvn/version "1.1.6"}}
         :main-opts ["-m" "behave-tree.core"]}
   :test {:extra-paths ["test"]
          :extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"                                           :sha "209b64504cb3bd3b99ecfec7937b358a879f55c1"}}
