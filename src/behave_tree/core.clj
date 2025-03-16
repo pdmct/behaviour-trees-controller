@@ -96,9 +96,11 @@
 (defmethod at/tick :car-charging?
   [db & children]
   (println "Checking car charging")
-  (if (:car-charging? (:state db))
-    (ai/tick-success db)
-    (ai/tick-failure db)))
+  (let [charger-active? (fetch-charger-status)
+        db (assoc db :car-charging? charger-active?)]
+    (if charger-active?
+     (ai/tick-success db)
+      (ai/tick-failure db))))
 
 (defmethod at/tick :forecast-soc-45-at-6am?
   [db & children]
