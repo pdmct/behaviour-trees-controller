@@ -79,12 +79,14 @@
 
 (defmethod at/tick :forecast-soc-45-at-6am?
   [db]
-  (if (forecast-soc? (:soc (:state db))
-                     45
-                     (time/local-time 6 0)
-                     (/ 5 60))
-    (ai/tick-success db)
-    (ai/tick-failure db)))
+  (let [current-time (time/local-time)]
+    (if (forecast-soc? (:soc (:state db))
+                       45
+                       current-time
+                       (time/local-time 6 0)
+                       (/ 5 60))
+      (ai/tick-success db)
+      (ai/tick-failure db))))
 
 (defmethod at/tick :charge-battery
   [db]
@@ -95,34 +97,42 @@
   (do (Thread/sleep 60000)
       (ai/tick-success db)))
 
+(defmethod at/tick :nothing-to-do
+  [db]
+  (ai/tick-success db))
+
 (def battery-behaviour-tree
   [:loop {:count 3}
-   [:selector
-    [:battery-charged?]
-    [:sequence
-     [:free-charge-time?]
+   [:sequence
+    [:selector
      [:selector
-      [:car-charging?
-       :charge-battery]]]
-    [:sequence
-     [:cheap-charge-time?]
-     [:selector
-      [:car-charging?]
+      [:battery-charged?]
       [:sequence
-       [:forecast-soc-45-at-6am?]
-       [:charge-battery]]]]]
-   [:wait-1-minute]])
+       [:free-charge-time?]
+       [:selector
+        [:car-charging?
+         :charge-battery]]]
+      [:sequence
+       [:cheap-charge-time?]
+       [:selector
+        [:car-charging?]
+        [:sequence
+         [:forecast-soc-45-at-6am?]
+         [:charge-battery]]]]]
+     [:nothing-to-do]]
+    [:wait-1-minute]]])
 
-(defn main
+(defn- main
   ;; Running the behavior tree
   []
   (let [fns {}
+        _ (println "Tree compiling...")
         tree (ac/compile battery-behaviour-tree fns)
+        _ (println (str "Tree compiled successfully" tree))
         db {:state {:soc 80
                     :car-charging? false}}]
     (let [{:keys [db status]} (ai/run-tick db tree)]
       (print (str "db:" db))
-      (if (and (= ai/SUCCESS status)
-               (get-in db [:state :response-sent]))
-        (print (str "Email generated and sent!"))
-        (print "Help!")))))
+      (if (ai/SUCCESS status)
+        (print "Tree finished successfully")
+        (print "Tree finished with failure")))))
