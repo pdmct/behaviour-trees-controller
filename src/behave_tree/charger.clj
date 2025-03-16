@@ -21,7 +21,7 @@
                     :delay-ms 1000}
       (let [url (str "http://" ip-address "/status")
             response (client/get url {:as :json})
-            _ (println (str "Charger status: " (:body response)))]
+            _ (log/info (str "Charger status: " (:body response)))]
         (parse-charger-status response)))
     (catch Exception e
       (log/error e "Error fetching charger status")
