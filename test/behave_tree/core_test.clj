@@ -1,7 +1,7 @@
 (ns behave-tree.core-test
   (:require
     [clojure.test :refer [deftest is testing]]
-    [behave-tree.core :refer [in-interval?  in-free-charge-time? in-cheap-charge-time? minutes-until-target forecast-soc?]]))
+    [behave-tree.core :refer [in-interval?  in-free-charge-time? in-cheap-charge-time? minutes-until-target forecast-soc? get-major-weather-events]]))
 
 (deftest test-in-interval?
   (testing "in-interval? function"
@@ -58,3 +58,19 @@
       ;; Test case with a target time that is not during charging hours
       (is (true? (forecast-soc? current-soc target-soc current-time (java.time.LocalTime/of 8 0) charge-rate-mins)))
     )))
+
+(deftest test-get-major-weather-events
+  (testing "get-major-weather-events function"
+    (let [location "your_location"
+          major-events (get-major-weather-events location)]
+      (is (seq major-events)))))
+
+(deftest test-major-weather-event?
+  (testing ":major-weather-event? behavior"
+    (let [db {:state {:soc 80
+                      :car-charging? false}}
+          location "your_location"
+          major-events (get-major-weather-events location)]
+      (if (seq major-events)
+        (is (= (at/tick :major-weather-event? db) (ai/tick-success db)))
+        (is (= (at/tick :major-weather-event? db) (ai/tick-failure db)))))))

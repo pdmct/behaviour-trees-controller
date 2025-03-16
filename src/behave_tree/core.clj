@@ -3,8 +3,8 @@
    [aido.compile :as ac]
    [aido.core :as ai]
    [aido.tick :as at]
-   [java-time.api :as time]))
-
+   [java-time.api :as time]
+   [behave-tree.weather :as weather]))
 
 (defn in-interval?
   "Returns true if the given LocalTime is within the specified interval [start-hour, end-hour]."
@@ -39,6 +39,10 @@
         ;; _ (println (str "current-soc: " (* current-soc 1.0)))
         forecast-soc (+ current-soc (* time-left-mins charge-rate-mins))]
     (>= forecast-soc target-soc)))
+
+(defn get-major-weather-events [location]
+  (let [weather-data (weather/get-weather-forecast location)]
+    (weather/parse-weather-data weather-data)))
 
 ;; aido behaviors for the battery
 (defmethod at/tick :battery-charged?
@@ -88,6 +92,14 @@
       (ai/tick-success db)
       (ai/tick-failure db))))
 
+(defmethod at/tick :major-weather-event?
+  [db]
+  (let [location "your_location"
+        major-events (get-major-weather-events location)]
+    (if (seq major-events)
+      (ai/tick-success db)
+      (ai/tick-failure db))))
+
 (defmethod at/tick :charge-battery
   [db]
   (ai/tick-success (assoc db :state {:soc 100})))
@@ -115,10 +127,13 @@
       [:sequence
        [:cheap-charge-time?]
        [:selector
-        [:car-charging?]
+        [:car-charging?
         [:sequence
          [:forecast-soc-45-at-6am?]
          [:charge-battery]]]]]
+      [:sequence
+       [:major-weather-event?]
+       [:nothing-to-do]]]
      [:nothing-to-do]]
     [:wait-1-minute]]])
 
