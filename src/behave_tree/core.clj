@@ -49,7 +49,8 @@
     (weather/parse-weather-data weather-data)))
 
 (defn get-charger-ip []
-  (get-in (cfg/get-config) [:charger :ip]))
+  (or (get-in (cfg/get-config) [:charger :ip])
+      "127.0.0.1"))
 
 (defn fetch-charger-status []
   (try
@@ -163,7 +164,7 @@
      [:nothing-to-do]]
     [:wait-1-minute]]])
 
-(defn main
+(defn -main
   ;; Running the behavior tree
   []
   (log/info "Starting...")
