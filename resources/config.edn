@@ -1,3 +1,11 @@
-{:twilio-account-sid "your_account_sid"
- :twilio-auth-token "your_auth_token"
- :twilio-from-number "your_twilio_number"}
+{:location {:longitude 144.0,
+            :latitude 37.0} 
+ :major-weather-events ["Thunderstorm", "Heavy rain", "Hail", "Tornado", "Hurricane", "Blizzard", "Flood"]
+ :free-electricity-time {:start 11,
+                         :end 14} ; 11am to 2pm
+ :cheap-electricity-time {:start 0,
+                          :end 6}  ; 12am to 6am
+ :charger {:ip "127.0.0.1"}
+ :twilio {:twilio-account-sid "your_account_sid"
+          :twilio-auth-token "your_auth_token"
+          :twilio-from-number "your_twilio_number"}}
