@@ -5,6 +5,8 @@
 .cpcache/
 .clj-kondo/
 .lsp
+.env
+resources/config_local.edn
 
 target/
 *.log
