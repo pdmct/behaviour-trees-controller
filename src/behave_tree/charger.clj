@@ -7,10 +7,10 @@
 (defn parse-charger-status
   "Parses the charger status from the OpenEvse 4.x API response."
   [response]
-  (let [status (:body response)]
-    (if (nil? status)
+  (let [body (:body response)]
+    (if (nil? body)
       {:status "unknown"}
-      {:status status})))
+      {:status (:status body)})))
 
 (defn get-charger-status
   "Fetches the charger status from the OpenEvse 4.x API."

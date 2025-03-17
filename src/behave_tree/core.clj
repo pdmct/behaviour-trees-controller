@@ -99,9 +99,9 @@
   [db & children]
   (log/info "Checking car charging")
   (let [charger-active? (fetch-charger-status)
-        db (assoc db :car-charging? charger-active?)]
+        db (assoc-in db [:state :car-charging?] (:status charger-active?))]
     (if charger-active?
-     (ai/tick-success db)
+      (ai/tick-success db)
       (ai/tick-failure db))))
 
 (defmethod at/tick :forecast-soc-45-at-6am?
