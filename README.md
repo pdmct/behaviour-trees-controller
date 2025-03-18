@@ -19,6 +19,10 @@ Use as your own risk ... there are better (more secure) ways to do this.
 
 2. Implement retrieval fo battery SoC
 
+3. Refactor the behaviour tree and behaviors into a separate file to clean up core.clj
+
+4. Restructure repo to make be a bit more organised
+
 
 Uses the `aido` library: https://github.com/mmower/aido/tree/master.
 
