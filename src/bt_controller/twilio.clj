@@ -1,7 +1,7 @@
 (ns bt-controller.twilio
   (:require [clj-http.client :as http]
             [clojure.tools.logging :as log]
-            [behave-tree.config :as cfg] 
+            [bt-controller.config :as cfg] 
             [clojure.string :as str])
   (:import [java.net URLEncoder]))
 
@@ -38,8 +38,8 @@
   "Make a simple POST request to the API"
   [method url & params]
   (assert ((complement every?) str/blank? [*sid* *token*]))
-  (let [request-params (into {} params)]
-
+  (let [request-params (into {} params)
+        _ (print (str "params: " request-params))]
     (try
       (http/request
        {:method method
@@ -47,7 +47,7 @@
         :form-params request-params
         :basic-auth [*sid* *token*]
         :socket-timeout 3000
-        :conn-timeout 3000}) ; Timeout the request in 3 seconds
+        :conn-timeout 3000})   ;; Timeout the request in 3 seconds
       (catch Exception e
         {:error e}))))
 
@@ -82,8 +82,9 @@
   "Send an SMS message which is a map in the form {:from x :to x body x}"
   [params]
   (let [url (make-request-url "Messages")]
-    (log/info (str "Message sent: " (:body params))
-              (request :post url params))))
+    (log/info (str "Message sent: " (:body params)))
+    ((fnil :body {:status ""}) 
+     (request :post url params))))
 
 (defn send-text-message
   "Sends a text message using the Twilio API."
