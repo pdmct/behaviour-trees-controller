@@ -1,15 +1,15 @@
-(ns behave-tree.core
+(ns bt-controller.core
   (:require
    [aido.compile :as ac]
    [aido.core :as ai]
    [aido.tick :as at]
    [java-time.api :as time]
-   [behave-tree.weather :as weather]
-   [behave-tree.config :as cfg]
-   [behave-tree.charger :as charger]
+   [bt-controller.weather :as weather]
+   [bt-controller.config :as cfg]
+   [bt-controller.charger :as charger]
    [clojure.pprint :as pp]
    [clojure.tools.logging :as log]
-   [behave-tree.twilio :as twilio]))
+   [bt-controller.twilio :as twilio]))
 
 (defn in-interval?
   "Returns true if the given LocalTime is within the specified interval [start-hour, end-hour]."

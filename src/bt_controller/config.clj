@@ -1,4 +1,4 @@
-(ns behave-tree.config
+(ns bt-controller.config
   (:require [aero.core :refer [read-config]]
             [clojure.java.io :as io]))
 

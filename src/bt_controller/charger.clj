@@ -1,4 +1,4 @@
-(ns behave-tree.charger
+(ns bt-controller.charger
   (:require [clj-http.client :as client]
             [clojure.tools.logging :as log]
             [diehard.core :as dh]))

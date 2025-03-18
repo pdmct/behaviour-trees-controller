@@ -1,4 +1,4 @@
-(ns behave-tree.twilio
+(ns bt-controller.twilio
   (:require [clj-http.client :as http]
             [clojure.tools.logging :as log]
             [behave-tree.config :as cfg] 
