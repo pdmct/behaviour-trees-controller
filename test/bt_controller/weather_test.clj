@@ -1,8 +1,8 @@
-(ns behave-tree.weather-test
+(ns bt-controller.weather-test
   (:require [clojure.test :refer :all]
             [clojure.string :as st]
             [clj-http.client :as client]
-            [behave-tree.weather :refer [get-weather-forecast parse-weather-data]]))
+            [bt-controller.weather :refer [get-weather-forecast parse-weather-data]]))
 
 (deftest test-get-weather-forecast
   (testing "get-weather-forecast function"

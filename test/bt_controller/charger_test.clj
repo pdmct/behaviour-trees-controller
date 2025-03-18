@@ -1,6 +1,7 @@
-(ns behave-tree.charger-test
+(ns (ns bt-controller.core-test
+.charger-test
   (:require [clojure.test :refer :all]
-            [behave-tree.charger :as charger]
+            [bt-controller.charger :as charger]
             [clj-http.client :as client]))
 
 (deftest test-get-charger-status-mocked

@@ -1,6 +1,6 @@
-(ns behave-tree.twilio-test
+(ns bt-controller.twilio-test
   (:require [clojure.test :refer :all]
-            [behave-tree.twilio :as twilio]
+            [bt-controller.twilio :as twilio]
             [clj-http.client :as client]))
 
 (deftest test-send-text-message

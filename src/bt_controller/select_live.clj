@@ -1,17 +1,14 @@
 (ns bt-controller.select-live
-  (:require [clojure.string :as str]
-            [clojure.java.io :as io]
-            [clojure.data.json :as json]
-            [net.cgrand.enlive-html :as html]
-            [clj-http.client :as client]
-            [tech.v3.dataset :as ds]
-            [diehard.core :as dh]
-            [pdmct.util.config :as cfg]))
+  (:require
+   [clojure.data.json :as json] 
+   [clj-http.client :as client] 
+   [diehard.core :as dh]
+   [bt-controller.config :as cfg]))
 
 
-(def select-live-url (str "https://select.live/dashboard/hfdata/" cfg/get-dashboard))
+;; (def select-live-url (str "https://select.live/dashboard/hfdata/" (cfg/get-dashboard)))
 
-(def ^:dynamic *local-device-url* (str "https://" (cfg/get-host cfg/config-map) "/cgi-bin/solarmonweb/devices/" (cfg/get-serial cfg/config-map) "/point"))
+(def ^:dynamic *local-device-url* (str "https://" (cfg/get-host) "/cgi-bin/solarmonweb/devices/" (cfg/get-serial) "/point"))
 
 (defn get-current-data
   " note; this only works on local network "

@@ -11,4 +11,7 @@
                          :end 14} ; 11am to 2pm
  :cheap-electricity-time {:start 0, 
                           :end 6}  ; 12am to 6am
- :charger {:ip #env "OPENEVSE_CHARGER_IP"}} ; charger IP address -- could be the tailscale IP address for the charger
+ :charger {:ip #env "OPENEVSE_CHARGER_IP"}
+ :select-live {:dashboard #env "SL_DASHBOARD"
+               :host #env "SL_HOST"
+               :serial #env "SL_SERIAL"}} ; charger IP address -- could be the tailscale IP address for the charger

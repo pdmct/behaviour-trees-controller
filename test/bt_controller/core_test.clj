@@ -1,7 +1,7 @@
-(ns behave-tree.core-test
+(ns bt-controller.core-test
   (:require
     [clojure.test :refer [deftest is testing]]
-    [behave-tree.core :refer [in-interval?  in-free-charge-time? in-cheap-charge-time? minutes-until-target forecast-soc? get-major-weather-events]]))
+    [bt-controller.core :refer [in-interval?  in-free-charge-time? in-cheap-charge-time? minutes-until-target forecast-soc? get-major-weather-events]]))
 
 (deftest test-in-interval?
   (testing "in-interval? function"

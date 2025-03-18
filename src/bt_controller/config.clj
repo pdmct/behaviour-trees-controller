@@ -19,3 +19,19 @@
   (when-not (:loaded? @config)
     (load-config))
   @config)
+
+
+(defn get-dashboard
+  "Returns the dashboard name from the configuration."
+  []
+  (get-in (get-config) [:select-live :dashboard]))
+
+(defn get-host
+  "Returns the host name from the configuration."
+  []
+  (get-in (get-config) [:select-live :host]))
+
+(defn get-serial
+  "Returns the serial number from the configuration."
+  []
+  (get-in (get-config) [:select-live :serial]))
