@@ -21,6 +21,7 @@
   @config)
 
 
+#_{:clj-kondo/ignore [:clojure-lsp/unused-public-var]}
 (defn get-dashboard
   "Returns the dashboard name from the configuration."
   []

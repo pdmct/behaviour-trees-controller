@@ -61,6 +61,7 @@
       {:status "unknown"})))
 
 ;; aido behaviors for the battery
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :battery-charged?
   [db & children]
   (log/info "Checking battery charged")
@@ -68,6 +69,8 @@
     (ai/tick-success db)
     (ai/tick-failure db)))
 
+
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :battery-soc-80?
   [db & children]
   (log/info "Checking battery soc 80")
@@ -75,6 +78,7 @@
     (ai/tick-success db)
     (ai/tick-failure db)))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :battery-soc-20?
   [db & children]
   (log/info "Checking battery soc 20")
@@ -82,6 +86,7 @@
     (ai/tick-success db)
     (ai/tick-failure db)))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :free-charge-time?
   [db & children]
   (log/info "Checking free charge time")
@@ -89,6 +94,7 @@
     (ai/tick-success db)
     (ai/tick-failure db)))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :cheap-charge-time?
   [db & children]
   (log/info "Checking cheap charge time")
@@ -96,6 +102,7 @@
     (ai/tick-success db)
     (ai/tick-failure db)))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :car-charging?
   [db & children]
   (log/info "Checking car charging")
@@ -105,6 +112,7 @@
       (ai/tick-success db)
       (ai/tick-failure db))))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :forecast-soc-45-at-6am?
   [db & children]
   (log/info "Checking forecast soc 45 at 6am")
@@ -117,6 +125,7 @@
       (ai/tick-success db)
       (ai/tick-failure db))))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :major-weather-event?
   [db & children]
   (let [location "your_location"
@@ -125,22 +134,26 @@
       (ai/tick-success db)
       (ai/tick-failure db))))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :charge-battery
   [db & children]
   (log/info "Charging battery")
   (ai/tick-success (assoc db :state {:soc 100})))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :wait-1-minute
   [db & children]
   (log/info "Waiting 1 minute")
   (do (Thread/sleep 60000)
       (ai/tick-success db)))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :nothing-to-do
   [db & children]
   (log/info "Nothing to do")
   (ai/tick-success db))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :charger-offline?
   [db & children]
   (log/info "Checking charger offline")
@@ -149,6 +162,7 @@
       (ai/tick-success db)
       (ai/tick-failure db))))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :alert-sent?
   [db & children]
   (log/info "Checking alert sent")
@@ -156,6 +170,7 @@
     (ai/tick-success db)
     (ai/tick-failure db)))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :send-txt-alert!
   [db & children]
   (log/info "Sending txt alert")
@@ -167,6 +182,7 @@
     (let [db (update-in db [:state :alert-sent?] not)] 
       (ai/tick-success db))))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :reset-alert-sent-flag!
   [db & children]
   (log/info "Resetting alert sent flag")
@@ -177,6 +193,7 @@
   (let [db (update-in db [:state :alert-sent?] not)]
     (ai/tick-success db)))
 
+#_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :charger-online?
   [db & children]
   (log/info "Checking charger online")
@@ -231,11 +248,10 @@
         _ (pp/pprint tree)
         db {:state {:soc 80
                     :car-charging? false
-                    :alert-sent? true}}
-        _ (log/info "Running tree...")]
-
-    (let [{:keys [db status]} (ai/run-tick db tree)]
+                    :alert-sent? false}}
+        _ (log/info "Running tree...")
+        {:keys [db status]} (ai/run-tick db tree)]
       (log/info (str "db:" db))
       (if (= ai/SUCCESS status)
         (log/info "Tree finished successfully")
-        (log/info "Tree finished with failure")))))
+        (log/info "Tree finished with failure"))))

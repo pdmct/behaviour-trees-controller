@@ -52,7 +52,7 @@
         {:error e}))))
 
 
-(deftype SMS [from to body])
+;;(deftype SMS [from to body])
 
 ;; Utils
 

@@ -1,5 +1,5 @@
 (ns bt-controller.twilio-test
-  (:require [clojure.test :refer :all]
+  (:require [clojure.test :refer [deftest is]]
             [bt-controller.twilio :as twilio]
             [clj-http.client :as http]
             [bt-controller.config :as config]))
