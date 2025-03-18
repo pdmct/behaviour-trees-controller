@@ -2,8 +2,7 @@
   (:require [clj-http.client :as http]
             [clojure.tools.logging :as log]
             [behave-tree.config :as cfg] 
-            [clojure.string :as str]
-            [behave-tree.twilio :as twilio])
+            [clojure.string :as str])
   (:import [java.net URLEncoder]))
 
 (def base "https://api.twilio.com/2010-04-01")
