@@ -8,7 +8,8 @@
    [behave-tree.config :as cfg]
    [behave-tree.charger :as charger]
    [clojure.pprint :as pp]
-   [clojure.tools.logging :as log]))
+   [clojure.tools.logging :as log]
+   [behave-tree.twilio :as twilio]))
 
 (defn in-interval?
   "Returns true if the given LocalTime is within the specified interval [start-hour, end-hour]."
@@ -140,8 +141,52 @@
   (log/info "Nothing to do")
   (ai/tick-success db))
 
+(defmethod at/tick :charger-offline?
+  [db & children]
+  (log/info "Checking charger offline")
+  (let [charger-status (fetch-charger-status)]
+    (if (= (:status charger-status) "error")
+      (ai/tick-success db)
+      (ai/tick-failure db))))
+
+(defmethod at/tick :alert-sent?
+  [db & children]
+  (log/info "Checking alert sent")
+  (if (:alert-sent? (:state db))
+    (ai/tick-success db)
+    (ai/tick-failure db)))
+
+(defmethod at/tick :send-txt-alert!
+  [db & children]
+  (log/info "Sending txt alert")
+  (let [twilio-cfg (get-in (cfg/get-config) [:twilio])]
+    (log/info "Sending txt alert to:" (:twilio-alert-number twilio-cfg))
+    
+    (twilio/send-text-message (:twilio-alert-number twilio-cfg)
+                              (:twilio-alert-message twilio-cfg))
+    (let [db (update-in db [:state :alert-sent?] not)] 
+      (ai/tick-success db))))
+
+(defmethod at/tick :reset-alert-sent-flag!
+  [db & children]
+  (log/info "Resetting alert sent flag")
+  (when (:alert-sent? (:state db))
+    (let [twilio-config (get-in (cfg/get-config) [:twilio])]
+      (twilio/send-text-message (:twilio-alert-number twilio-config)
+                                (:twilio-alert-message-restored twilio-config))))
+  (let [db (update-in db [:state :alert-sent?] not)]
+    (ai/tick-success db)))
+
+(defmethod at/tick :charger-online?
+  [db & children]
+  (log/info "Checking charger online")
+  (let [charger-status (fetch-charger-status)]
+    (if (not= (:status charger-status) "error")
+      (ai/tick-success db)
+      (ai/tick-failure db))))
+
 (def battery-behaviour-tree
-  [:loop {:count 3}
+  [:loop {:count 2}
    [:sequence
     [:selector
      [:selector
@@ -149,7 +194,7 @@
       [:sequence
        [:free-charge-time?]
        [:selector
-        [:car-charging?] 
+        [:car-charging?]
         [:charge-battery]]]
       [:sequence
        [:cheap-charge-time?]
@@ -160,7 +205,13 @@
          [:charge-battery]]]]
       [:sequence
        [:major-weather-event?]
-       [:nothing-to-do]]]
+       [:nothing-to-do]]
+      [:sequence
+       [:charger-offline?]
+       [:send-txt-alert!]]
+      [:sequence
+       [:charger-online?]
+       [:reset-alert-sent-flag!]]]
      [:nothing-to-do]]
     [:wait-1-minute]]])
 
@@ -168,7 +219,7 @@
   ;; Running the behavior tree
   []
   (log/info "Starting...")
-  (log/info "Loaded config:" @cfg/config)
+  (log/info "Loaded config:" (cfg/get-config))
   (log/info "Current time:" (time/local-time))
   (log/info "Major weather events:" (get-major-weather-events (:location @cfg/config)))
   (log/info "Forecast SOC 45 at 6am:" (forecast-soc? 80 45 (time/local-time) (time/local-time 6 0) (/ 5 60)))
@@ -179,9 +230,12 @@
         _ (log/info  (str "Tree compiled successfully:" (count tree)))
         _ (pp/pprint tree)
         db {:state {:soc 80
-                    :car-charging? false}}
-        {:keys [db status]} (ai/run-tick db tree)]
+                    :car-charging? false
+                    :alert-sent? true}}
+        _ (log/info "Running tree...")]
+
+    (let [{:keys [db status]} (ai/run-tick db tree)]
       (log/info (str "db:" db))
       (if (= ai/SUCCESS status)
         (log/info "Tree finished successfully")
-        (log/info "Tree finished with failure"))))
+        (log/info "Tree finished with failure")))))

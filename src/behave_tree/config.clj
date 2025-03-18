@@ -9,7 +9,7 @@
 (defn load-config
   "Loads the configuration from resources/config.edn using nomad and stores it in an atom."
   []
-  (if-let [config-file (io/resource "config.edn")]
+  (if-let [config-file (io/resource "config.edn")] 
     (reset! config (assoc (read-config config-file) :loaded? true))
     (throw (ex-info "Configuration file config.edn not found in resources directory" {}))))
 

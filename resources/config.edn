@@ -1,11 +1,14 @@
-{:location {:longitude 144.0,
-            :latitude 37.0} 
+{:twilio {:twilio-account-sid #env "TWILIO_ACCOUNT_SID"
+          :twilio-auth-token #env "TWILIO_AUTH_TOKEN"
+          :twilio-from-number #env "TWILIO_FROM_NUMBER"
+          :twilio-alert-number #env "TWILIO_ALERT_NUMBER"
+          :twilio-alert-message #env "TWILIO_ALERT_MESSAGE"
+          :twilio-alert-message-restored #env "TWILIO_ALERT_TEXT_RESTORED"}
+ :location {:longitude #env "HOME_LONGITUDE", 
+            :latitude #env "HOME_LATITUDE"} 
  :major-weather-events ["Thunderstorm", "Heavy rain", "Hail", "Tornado", "Hurricane", "Blizzard", "Flood"]
- :free-electricity-time {:start 11,
+ :free-electricity-time {:start 11, 
                          :end 14} ; 11am to 2pm
- :cheap-electricity-time {:start 0,
+ :cheap-electricity-time {:start 0, 
                           :end 6}  ; 12am to 6am
- :charger {:ip "127.0.0.1"}
- :twilio {:twilio-account-sid "your_account_sid"
-          :twilio-auth-token "your_auth_token"
-          :twilio-from-number "your_twilio_number"}}
+ :charger {:ip #env "OPENEVSE_CHARGER_IP"}} ; charger IP address -- could be the tailscale IP address for the charger
