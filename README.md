@@ -1,5 +1,5 @@
-## Behaviour Trees example
-A small example program for playing around with behaviour trees.
+## Behaviour Trees -- Home Battery Controller
+A small example program for playing around with behaviour trees that got a bit out of hand.
 
 This is an implementation of behaviour trees for controlling a home battery and EV charger.
 
@@ -16,6 +16,8 @@ Use as your own risk ... there are better (more secure) ways to do this.
 ### ToDo
 
 1. Implement the better ways
+
+2. Implement retrieval fo battery SoC
 
 
 Uses the `aido` library: https://github.com/mmower/aido/tree/master.
