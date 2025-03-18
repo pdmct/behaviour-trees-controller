@@ -1,6 +1,5 @@
 (ns bt-controller.weather
   (:require [clj-http.client :as client]
-            [cheshire.core :as json]
             [clojure.pprint :as pp]))
 
 (defn get-weather-forecast [location]
