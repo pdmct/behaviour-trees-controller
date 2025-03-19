@@ -3,13 +3,14 @@
    [aido.compile :as ac]
    [aido.core :as ai]
    [aido.tick :as at]
-   [java-time.api :as time]
-   [bt-controller.weather :as weather]
-   [bt-controller.config :as cfg]
    [bt-controller.charger :as charger]
+   [bt-controller.config :as cfg]
+   [bt-controller.select-live :as battery]
+   [bt-controller.twilio :as twilio]
+   [bt-controller.weather :as weather]
    [clojure.pprint :as pp]
    [clojure.tools.logging :as log]
-   [bt-controller.twilio :as twilio]))
+   [java-time.api :as time]))
 
 (defn in-interval?
   "Returns true if the given LocalTime is within the specified interval [start-hour, end-hour]."
@@ -148,10 +149,14 @@
       (ai/tick-success db)))
 
 #_{:clj-kondo/ignore [:unused-binding]}
-(defmethod at/tick :nothing-to-do
+(defmethod at/tick :update-soc
   [db & children]
-  (log/info "Nothing to do")
-  (ai/tick-success db))
+  (let [current-data (battery/get-current-data)]
+    (log/info (str "Updating SOC with " current-data))
+    (ai/tick-success (assoc-in db 
+                               [:state :soc] 
+                               (:soc current-data)))))
+  
 
 #_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :charger-offline?
@@ -188,9 +193,10 @@
   (log/info "Resetting alert sent flag")
   (when (:alert-sent? (:state db))
     (let [twilio-config (get-in (cfg/get-config) [:twilio])]
+      (log/info "Alert sent flag is true, sending restored message")
       (twilio/send-text-message (:twilio-alert-number twilio-config)
                                 (:twilio-alert-message-restored twilio-config))))
-  (let [db (update-in db [:state :alert-sent?] not)]
+  (let [db (update-in db [:state :alert-sent?] (constantly false))]
     (ai/tick-success db)))
 
 #_{:clj-kondo/ignore [:unused-binding]}
@@ -222,14 +228,14 @@
          [:charge-battery]]]]
       [:sequence
        [:major-weather-event?]
-       [:nothing-to-do]]
+       [:update-soc]]
       [:sequence
        [:charger-offline?]
        [:send-txt-alert!]]
       [:sequence
        [:charger-online?]
        [:reset-alert-sent-flag!]]]
-     [:nothing-to-do]]
+     [:update-soc]]
     [:wait-1-minute]]])
 
 (defn -main
