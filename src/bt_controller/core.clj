@@ -10,7 +10,8 @@
    [bt-controller.weather :as weather]
    [clojure.pprint :as pp]
    [clojure.tools.logging :as log]
-   [java-time.api :as time]))
+   [java-time.api :as time])
+  (:gen-class))
 
 (defn in-interval?
   "Returns true if the given LocalTime is within the specified interval [start-hour, end-hour]."
@@ -129,7 +130,7 @@
 #_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :major-weather-event?
   [db & children]
-  (let [location "your_location"
+  (let [location (:location (cfg/get-config))
         major-events (get-major-weather-events location)]
     (if (seq major-events)
       (ai/tick-success db)
@@ -138,24 +139,24 @@
 #_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :charge-battery
   [db & children]
-  (log/info "Charging battery")
+  (log/info "Charging battery - to 100")
   (ai/tick-success (assoc db :state {:soc 100})))
 
 #_{:clj-kondo/ignore [:unused-binding]}
-(defmethod at/tick :wait-1-minute
+(defmethod at/tick :wait
   [db & children]
   (log/info "Waiting 1 minute")
-  (do (Thread/sleep 60000)
+  (do (Thread/sleep (:poll-interval-ms (cfg/get-config)))
       (ai/tick-success db)))
 
 #_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :update-soc
   [db & children]
   (let [current-data (battery/get-current-data)]
-    (log/info (str "Updating SOC with " current-data))
+    (log/info (str "Updating SOC with " current-data)) 
     (ai/tick-success (assoc-in db 
                                [:state :soc] 
-                               (:soc current-data)))))
+                               (:battery_soc current-data)))))
   
 
 #_{:clj-kondo/ignore [:unused-binding]}
@@ -209,7 +210,7 @@
       (ai/tick-failure db))))
 
 (def battery-behaviour-tree
-  [:loop {:count 2}
+  [:loop ;; loop indefinitely {:count 2}
    [:sequence
     [:selector
      [:selector
@@ -236,7 +237,8 @@
        [:charger-online?]
        [:reset-alert-sent-flag!]]]
      [:update-soc]]
-    [:wait-1-minute]]])
+    [:wait]
+    [:update-soc]]])
 
 (defn -main
   ;; Running the behavior tree

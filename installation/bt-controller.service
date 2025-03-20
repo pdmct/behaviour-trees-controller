@@ -1,0 +1,14 @@
+[Unit]
+Description=Behavior Tree Battery Controller Service
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/bt-controller
+ExecStart=/usr/bin/java -jar /home/pi/bt-controller/bt-controller.jar
+SuccessExitStatus=143
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
