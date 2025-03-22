@@ -23,6 +23,12 @@ Use as your own risk ... there are better (more secure) ways to do this.
 
 4. Restructure repo to make be a bit more organised
 
+### Generating the Behavior Tree Diagram
+
+To generate the behavior tree diagram, follow these steps:
+
+1. Ensure you have the `rhizome` library installed. You can add it to your `deps.edn` file as a dependency.
+2. Run the `-main` function in `src/bt_controller/core.clj` with the `--generate-diagram` flag. This will generate the behavior tree diagram and save it as `resources/behavior_tree.png`.
 
 Uses the `aido` library: https://github.com/mmower/aido/tree/master.
 

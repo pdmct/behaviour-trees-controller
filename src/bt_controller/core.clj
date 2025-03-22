@@ -10,7 +10,8 @@
    [bt-controller.weather :as weather]
    [clojure.pprint :as pp]
    [clojure.tools.logging :as log]
-   [java-time.api :as time]))
+   [java-time.api :as time]
+   [rhizome.viz :as viz]))
 
 (defn in-interval?
   "Returns true if the given LocalTime is within the specified interval [start-hour, end-hour]."
@@ -238,26 +239,42 @@
      [:update-soc]]
     [:wait-1-minute]]])
 
+(defn generate-diagram [tree]
+  (let [nodes (atom #{})
+        edges (atom #{})]
+    (letfn [(traverse [node]
+              (when (vector? node)
+                (let [id (str (first node))]
+                  (swap! nodes conj id)
+                  (doseq [child (rest node)]
+                    (let [child-id (str (first child))]
+                      (swap! edges conj [id child-id])
+                      (traverse child))))))]
+      (traverse tree))
+    (viz/save-image (viz/graph->image @nodes @edges) "resources/behavior_tree.png")))
+
 (defn -main
   ;; Running the behavior tree
-  []
+  [& args]
   (log/info "Starting...")
   (log/info "Loaded config:" (cfg/get-config))
   (log/info "Current time:" (time/local-time))
   (log/info "Major weather events:" (get-major-weather-events (:location @cfg/config)))
   (log/info "Forecast SOC 45 at 6am:" (forecast-soc? 80 45 (time/local-time) (time/local-time 6 0) (/ 5 60)))
   (log/info "Charger status:" (fetch-charger-status))
-  (let [fns {}
-        _ (log/info "Tree compiling...")
-        tree (ac/compile battery-behaviour-tree fns)
-        _ (log/info  (str "Tree compiled successfully:" (count tree)))
-        _ (pp/pprint tree)
-        db {:state {:soc 80
-                    :car-charging? false
-                    :alert-sent? false}}
-        _ (log/info "Running tree...")
-        {:keys [db status]} (ai/run-tick db tree)]
+  (if (some #{"--generate-diagram"} args)
+    (generate-diagram battery-behaviour-tree)
+    (let [fns {}
+          _ (log/info "Tree compiling...")
+          tree (ac/compile battery-behaviour-tree fns)
+          _ (log/info  (str "Tree compiled successfully:" (count tree)))
+          _ (pp/pprint tree)
+          db {:state {:soc 80
+                      :car-charging? false
+                      :alert-sent? false}}
+          _ (log/info "Running tree...")
+          {:keys [db status]} (ai/run-tick db tree)]
       (log/info (str "db:" db))
       (if (= ai/SUCCESS status)
         (log/info "Tree finished successfully")
-        (log/info "Tree finished with failure"))))
+        (log/info "Tree finished with failure")))))
