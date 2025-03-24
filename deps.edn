@@ -9,7 +9,8 @@
   org.clojure/tools.logging {:mvn/version "1.1.0"}
   ch.qos.logback/logback-classic {:mvn/version "1.2.3"}
   diehard/diehard {:mvn/version "0.11.12"}
-  org.clojure/data.json {:mvn/version "2.4.0"}} ; Add this line
+  org.clojure/data.json {:mvn/version "2.4.0"}
+  rhizome/rhizome {:mvn/version "0.2.9"}} ; Add this line
  :aliases
  {:dev {:extra-paths ["src"]
         :extra-deps {aero/aero {:mvn/version "1.1.6"}

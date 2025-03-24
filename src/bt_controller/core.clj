@@ -8,10 +8,12 @@
    [bt-controller.select-live :as battery]
    [bt-controller.twilio :as twilio]
    [bt-controller.weather :as weather]
+   [bt-controller.tree-utils :as tu]
    [clojure.pprint :as pp]
    [clojure.tools.logging :as log]
    [java-time.api :as time]
-   [rhizome.viz :as viz]))
+   [rhizome.viz :as viz]
+   [rhizome.dot :as dot]))
 
 (defn in-interval?
   "Returns true if the given LocalTime is within the specified interval [start-hour, end-hour]."
@@ -180,23 +182,20 @@
 (defmethod at/tick :send-txt-alert!
   [db & children]
   (log/info "Sending txt alert")
-  (let [twilio-cfg (get-in (cfg/get-config) [:twilio])]
+  (let [twilio-cfg (get-in (cfg/get-config) [:twilio])] 
     (log/info "Sending txt alert to:" (:twilio-alert-number twilio-cfg))
-    
     (twilio/send-text-message (:twilio-alert-number twilio-cfg)
                               (:twilio-alert-message twilio-cfg))
     (let [db (update-in db [:state :alert-sent?] not)] 
       (ai/tick-success db))))
 
 #_{:clj-kondo/ignore [:unused-binding]}
-(defmethod at/tick :reset-alert-sent-flag!
+(defmethod at/tick :send-txt-restored!
   [db & children]
-  (log/info "Resetting alert sent flag")
-  (when (:alert-sent? (:state db))
-    (let [twilio-config (get-in (cfg/get-config) [:twilio])]
-      (log/info "Alert sent flag is true, sending restored message")
-      (twilio/send-text-message (:twilio-alert-number twilio-config)
-                                (:twilio-alert-message-restored twilio-config))))
+  (log/info "Power is restored, sending txt restored mesg")
+  (let [twilio-config (get-in (cfg/get-config) [:twilio])]
+    (twilio/send-text-message (:twilio-alert-number twilio-config)
+                              (:twilio-alert-message-restored twilio-config)))
   (let [db (update-in db [:state :alert-sent?] (constantly false))]
     (ai/tick-success db)))
 
@@ -210,7 +209,7 @@
       (ai/tick-failure db))))
 
 (def battery-behaviour-tree
-  [:loop {:count 2}
+  [:loop {:count 2} ;; for testing, -1 for infinite
    [:sequence
     [:selector
      [:selector
@@ -232,26 +231,29 @@
        [:update-soc]]
       [:sequence
        [:charger-offline?]
-       [:send-txt-alert!]]
+       [:selector
+        [:alert-sent?]
+        [:send-txt-alert!]]]
       [:sequence
        [:charger-online?]
-       [:reset-alert-sent-flag!]]]
-     [:update-soc]]
-    [:wait-1-minute]]])
+       [:sequence
+        [:alert-sent?]
+        [:send-txt-restored!]]]
+      [:update-soc]]
+    [:wait-1-minute]]]])
+
 
 (defn generate-diagram [tree]
-  (let [nodes (atom #{})
-        edges (atom #{})]
-    (letfn [(traverse [node]
-              (when (vector? node)
-                (let [id (str (first node))]
-                  (swap! nodes conj id)
-                  (doseq [child (rest node)]
-                    (let [child-id (str (first child))]
-                      (swap! edges conj [id child-id])
-                      (traverse child))))))]
-      (traverse tree))
-    (viz/save-image (viz/graph->image @nodes @edges) "resources/behavior_tree.png")))
+  (let [structure (tu/generate-tree-structure tree)
+        nodes (:nodes structure)]
+    (let [dot (dot/graph->dot nodes (tu/adjacent-nodes structure)
+                              :node->descriptor tu/node->descriptor
+                              :options {:rankdir "TB"   ; Top to bottom layout
+                                        :ordering "out" ; Preserve child order
+                                        :ranksep "0.8"
+                                        :nodesep "0.5"})
+          image (viz/dot->image dot)]
+      (viz/save-image image "resources/behavior_tree.png"))))
 
 (defn -main
   ;; Running the behavior tree
@@ -261,7 +263,7 @@
   (log/info "Current time:" (time/local-time))
   (log/info "Major weather events:" (get-major-weather-events (:location @cfg/config)))
   (log/info "Forecast SOC 45 at 6am:" (forecast-soc? 80 45 (time/local-time) (time/local-time 6 0) (/ 5 60)))
-  (log/info "Charger status:" (fetch-charger-status))
+  ;; (log/info "Charger status:" (fetch-charger-status))
   (if (some #{"--generate-diagram"} args)
     (generate-diagram battery-behaviour-tree)
     (let [fns {}
