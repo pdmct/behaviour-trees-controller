@@ -21,17 +21,24 @@ Use as your own risk ... there are better (more secure) ways to do this.
 
 1. Implement the better ways
 
-2. --Implement retrieval fo battery SoC--
+2. Functionality:
 
-3. Refactor the behaviour tree and behaviors into a separate file to clean up core.clj
+    a. -Implement retrieval fo battery SoC- DONE
 
-4. Restructure repo to make be a bit more organised
+    b. Implement precharging for major forecast weather events
+
+    c. Implement email alerts - WIP
+
+
+3. Refactor the behaviour tree and behaviors into a separate module to clean up core.clj
+
+4. Restructure repo to make be a bit tidier
 
 ### Generating the Behavior Tree Diagram
 
 To generate the behavior tree diagram, follow these steps:
 
-1. Ensure you have the `rhizome` library installed. 
+1. Ensure you have the `rhizome` library and `graphviz` installed. 
 2. Run the `-main` function in `src/bt_controller/core.clj` with the `--generate-diagram` flag. This will generate the behavior tree diagram and save it as `resources/behavior_tree.png`.
 
 ### Notes
