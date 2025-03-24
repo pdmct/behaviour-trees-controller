@@ -148,7 +148,7 @@
 #_{:clj-kondo/ignore [:unused-binding]}
 (defmethod at/tick :wait
   [db & children]
-  (log/info "Waiting 1 minute")
+  (log/info (str  "Waiting " (:poll-interval-ms (cfg/get-config)) "ms"))
   (do (Thread/sleep (:poll-interval-ms (cfg/get-config)))
       (ai/tick-success db)))
 

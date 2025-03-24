@@ -3,8 +3,12 @@ A small example program for playing around with behaviour trees that got a bit o
 
 This is an implementation of behaviour trees for controlling a home battery and EV charger.
 
-The behaviour tree is intended to look something like this:
+The behaviour tree design is:
 ![Battery Controller Tree Diagram](docs/Battery_controller.png)
+
+The current implemented behavior tree is as follows:
+![Battery controller as implemented](docs/behavior_tree.png)
+
 
 ### Install
 
