@@ -20,6 +20,7 @@
                      org.clojure/tools.logging {:mvn/version "1.1.0"}
                      ch.qos.logback/logback-classic {:mvn/version "1.2.3"}
                      diehard/diehard {:mvn/version "0.11.12"}}
+        :jvm-opts ["-Djava.awt.headless=true"]
         :main-opts ["-m" "bt-controller.core"]}
   :test {:extra-paths ["test"]
          :extra-deps {com.cognitect/test-runner {:git/url "https://github.com/cognitect-labs/test-runner.git"
@@ -27,4 +28,5 @@
          :main-opts ["-m" "cognitect.test-runner"]}
   :build {:replace-deps {io.github.clojure/tools.build {:git/tag "v0.10.7" 
                                                         :git/sha "573711e"}}
+          :jvm-opts ["-Djava.awt.headless=true"]
           :ns-default build}}}

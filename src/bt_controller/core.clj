@@ -241,8 +241,8 @@
         [:alert-sent?]
         [:send-txt-restored!]]]
       [:update-soc]]
-    [:wait]
-    [:update-soc]]]])
+    [:wait]]
+    [:update-soc]]])
 
 
 (defn generate-diagram [tree]
