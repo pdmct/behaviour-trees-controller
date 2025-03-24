@@ -10,7 +10,10 @@
   ch.qos.logback/logback-classic {:mvn/version "1.2.3"}
   diehard/diehard {:mvn/version "0.11.12"}
   org.clojure/data.json {:mvn/version "2.4.0"}
-  rhizome/rhizome {:mvn/version "0.2.9"}} ; Add this line
+  jakarta.mail/jakarta.mail-api {:mvn/version "2.1.2"}  ; for email
+  com.sun.mail/jakarta.mail {:mvn/version "2.0.1"}
+  org.clojure/data.codec {:mvn/version "0.1.1"}
+  rhizome/rhizome {:mvn/version "0.2.9"}} ; for diagram generation
  :aliases
  {:dev {:extra-paths ["src"]
         :extra-deps {aero/aero {:mvn/version "1.1.6"}
