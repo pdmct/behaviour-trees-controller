@@ -5,7 +5,8 @@ After=network.target
 [Service]
 User=pi
 WorkingDirectory=/home/pi/bt-controller
-ExecStart=/usr/bin/java -jar /home/pi/bt-controller/bt-controller.jar
+ExecStart=/usr/bin/java -jar /home/pi/bt-controller/bt-controller-1.2.46-standalone.jar
+EnvironmentFile=/home/pi/bt-controller/bt-controller.env
 SuccessExitStatus=143
 Restart=always
 RestartSec=10
