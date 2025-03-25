@@ -1,6 +1,10 @@
 ## Installation on Raspberry Pi
 
-1. Build uberjar
+1. Export the JAVA OPTS so the the graphviz component compiles
+
+`export _JAVA_OPTIONS="-Djava.awt.headless=true"`
+
+2. Build uberjar
 
 `clj -T:build uber`
 
@@ -8,7 +12,7 @@ copy the jar file into the following directory
 
 `/home/pi/bt-controller/`
 
-2. Install as service
+3. Install as service
 
 Copy the bt-controller.service file into `/etc/systemd/system/` directory
 
@@ -26,11 +30,11 @@ sudo systemctl status bt-controller
 sudo systemctl enable bt-controller
 ```
 
-3. View the logs
+4. View the logs
 
 `journalctl -u bt-controller.service -f`
 
-4. Useful commands
+5. Useful commands
 
 Stop the service:
 `sudo systemctl stop bt-controller`
