@@ -16,6 +16,9 @@
    [rhizome.dot :as dot])
   (:gen-class))
 
+;; this is to allow compilation on headless devices
+(System/setProperty "java.awt.headless" "true")
+
 (defn in-interval?
   "Returns true if the given LocalTime is within the specified interval [start-hour, end-hour]."
   [time start-hour end-hour]
@@ -210,38 +213,37 @@
       (ai/tick-failure db))))
 
 (def battery-behaviour-tree
-  [:loop ;; loop indefinitely {:count 2}
-   [:sequence
+  [:loop {:count -1} ;; loop indefinitely {:count 2}
+   [:sequence 
     [:selector
-     [:selector
-      [:battery-charged?]
-      [:sequence
-       [:free-charge-time?]
-       [:selector
-        [:car-charging?]
-        [:charge-battery]]]
-      [:sequence
-       [:cheap-charge-time?]
-       [:selector
-        [:car-charging?]
-        [:sequence
-         [:forecast-soc-45-at-6am?]
-         [:charge-battery]]]]
-      [:sequence
-       [:major-weather-event?]
-       [:update-soc]]
-      [:sequence
-       [:charger-offline?]
-       [:selector
-        [:alert-sent?]
-        [:send-txt-alert!]]]
-      [:sequence
-       [:charger-online?]
+     [:battery-charged?]
+     [:sequence
+      [:free-charge-time?]
+      [:selector
+       [:car-charging?]
+       [:charge-battery]]]
+     [:sequence
+      [:cheap-charge-time?]
+      [:selector
+       [:car-charging?]
        [:sequence
-        [:alert-sent?]
-        [:send-txt-restored!]]]
+        [:forecast-soc-45-at-6am?]
+        [:charge-battery]]]]
+     [:sequence
+      [:major-weather-event?]
       [:update-soc]]
-    [:wait]]
+     [:sequence
+      [:charger-offline?]
+      [:selector
+       [:alert-sent?]
+       [:send-txt-alert!]]]
+     [:sequence
+      [:charger-online?]
+      [:sequence
+       [:alert-sent?]
+       [:send-txt-restored!]]]
+     [:update-soc]]
+    [:wait]
     [:update-soc]]])
 
 
