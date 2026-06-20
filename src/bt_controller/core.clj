@@ -264,6 +264,11 @@
   [& args]
   (log/info "Starting...")
   (log/info "Loaded config:" (cfg/get-config))
+  (if-let [discovered-ip (charger/discover-charger)]
+    (do
+      (log/info (str "Charger discovered at " discovered-ip))
+      (cfg/set-charger-ip! discovered-ip))
+    (log/warn "No charger found in configured IP range"))
   (log/info "Current time:" (time/local-time))
   (log/info "Major weather events:" (get-major-weather-events (:location @cfg/config)))
   (log/info "Forecast SOC 45 at 6am:" (forecast-soc? 80 45 (time/local-time) (time/local-time 6 0) (/ 5 60)))

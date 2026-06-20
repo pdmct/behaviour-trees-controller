@@ -27,6 +27,16 @@
   []
   (get-in (get-config) [:select-live :dashboard]))
 
+(defn get-charger-ip
+  "Returns the charger IP address from the configuration."
+  []
+  (get-in (get-config) [:charger :ip]))
+
+(defn set-charger-ip!
+  "Updates the charger IP address in the configuration atom."
+  [ip]
+  (swap! config assoc-in [:charger :ip] ip))
+
 (defn get-host
   "Returns the host name from the configuration."
   []
